@@ -105,6 +105,112 @@ def step_impl(context, element_name):
 ##################################################################
 
 ## UPDATE CODE HERE ##
+from behave import given, when, then
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
+
+@given('the following products')
+def step_impl(context):
+    """Load the database with sample products"""
+    context.execute_steps('''
+        Given the following products
+            | name      | description       | price | available | category |
+            | Hat       | A red fedora      | 59.95 | True      | CLOTHS   |
+            | Socks     | Comfy wool socks  | 12.50 | True      | CLOTHS   |
+            | Widget    | Useful gadget     | 19.99 | False     | TOOLS    |
+            | Gizmo     | Electronic thingy | 29.99 | True      | GADGETS  |
+    ''')
+
+@when('I visit the "Home Page"')
+def step_impl(context):
+    context.driver.get(context.base_url)
+
+@when('I set the "{element_name}" to "{text_string}"')
+def step_impl(context, element_name, text_string):
+    element_id = element_name.lower().replace(' ', '_') + '_field'
+    element = context.driver.find_element_by_id(element_id)
+    element.clear()
+    element.send_keys(text_string)
+
+@when('I press the "{button}" button')
+def step_impl(context, button):
+    button_id = button.lower() + '-btn'
+    context.driver.find_element_by_id(button_id).click()
+
+@when('I press the "Search" button without entering criteria')
+def step_impl(context):
+    context.driver.find_element_by_id('search-btn').click()
+
+@when('I copy the "{field}" field')
+def step_impl(context, field):
+    element_id = field.lower() + '_field'
+    context.clipboard = context.driver.find_element_by_id(element_id).get_attribute('value')
+
+@when('I paste the "{field}" field')
+def step_impl(context, field):
+    element_id = field.lower() + '_field'
+    element = context.driver.find_element_by_id(element_id)
+    element.clear()
+    element.send_keys(context.clipboard)
+
+@then('I should see the message "{message}"')
+def step_impl(context, message):
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'flash_message'),
+            message
+        )
+    )
+    assert(found)
+
+@then('I should see the message "{message}" in {wait_time} seconds')
+def step_impl(context, message, wait_time):
+    found = WebDriverWait(context.driver, int(wait_time)).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'flash_message'),
+            message
+        )
+    )
+    assert(found)
+
+@then('I should see "{text}" in the "{element_name}" field')
+def step_impl(context, text, element_name):
+    element_id = element_name.lower().replace(' ', '_') + '_field'
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element_value(
+            (By.ID, element_id),
+            text
+        )
+    )
+    assert(found)
+
+@then('I should see "{text}" in the "{element_name}" dropdown')
+def step_impl(context, text, element_name):
+    element_id = element_name.lower().replace(' ', '_') + '_field'
+    element = context.driver.find_element_by_id(element_id)
+    assert text in element.text
+
+@then('I should see "{name}" in the results')
+def step_impl(context, name):
+    found = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'search_results'),
+            name
+        )
+    )
+    assert(found)
+
+@then('I should not see "{name}" in the results')
+def step_impl(context, name):
+    element = context.driver.find_element_by_id('search_results')
+    assert(name not in element.text)
+
+@then('I should see "{count}" products in the results')
+def step_impl(context, count):
+    element = context.driver.find_element_by_id('search_results')
+    products = element.find_elements_by_class_name('product-item')
+    assert len(products) == int(count)
 
 ##################################################################
 # This code works because of the following naming convention:
