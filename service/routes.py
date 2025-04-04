@@ -95,34 +95,66 @@ def create_products():
 
 
 ######################################################################
-# L I S T   A L L   P R O D U C T S
+# READ A PRODUCT
 ######################################################################
-
-#
-# PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
-#
-
-######################################################################
-# R E A D   A   P R O D U C T
-######################################################################
-
-#
-# PLACE YOUR CODE HERE TO READ A PRODUCT
-#
+@app.route("/products/<int:product_id>", methods=["GET"])
+def get_product(product_id):
+    """Retrieve a single Product"""
+    app.logger.info("Request to Retrieve a product with id [%s]", product_id)
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+    return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
-# U P D A T E   A   P R O D U C T
+# UPDATE A PRODUCT
 ######################################################################
-
-#
-# PLACE YOUR CODE TO UPDATE A PRODUCT HERE
-#
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_product(product_id):
+    """Update a Product"""
+    app.logger.info("Request to Update a product with id [%s]", product_id)
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+    
+    product.deserialize(request.get_json())
+    product.update()
+    return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
-# D E L E T E   A   P R O D U C T
+# DELETE A PRODUCT
 ######################################################################
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    """Delete a Product"""
+    app.logger.info("Request to Delete a product with id [%s]", product_id)
+    product = Product.find(product_id)
+    if product:
+        product.delete()
+    return "", status.HTTP_204_NO_CONTENT
 
-
-#
-# PLACE YOUR CODE TO DELETE A PRODUCT HERE
-#
+######################################################################
+# LIST PRODUCTS
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """Returns list of Products with optional filters"""
+    app.logger.info("Request to list Products")
+    
+    products = []
+    name = request.args.get("name")
+    category = request.args.get("category")
+    available = request.args.get("available")
+    
+    if name:
+        products = Product.find_by_name(name)
+    elif category:
+        products = Product.find_by_category(category)
+    elif available:
+        available_bool = available.lower() in ['true', '1', 't']
+        products = Product.find_by_availability(available_bool)
+    else:
+        products = Product.all()
+    
+    results = [product.serialize() for product in products]
+    return results, status.HTTP_200_OK
