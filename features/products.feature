@@ -38,3 +38,99 @@ Scenario: Create a Product
     And I should see "True" in the "Available" dropdown
     And I should see "Tools" in the "Category" dropdown
     And I should see "34.95" in the "Price" field
+
+Feature: Product Management UI
+    As a store administrator
+    I need to manage products through a web UI
+    So that I can maintain our product catalog
+
+Background:
+    Given the following products
+        | name      | description       | price | available | category |
+        | Hat       | A red fedora      | 59.95 | True      | CLOTHS   |
+        | Socks     | Comfy wool socks  | 12.50 | True      | CLOTHS   |
+        | Widget    | Useful gadget     | 19.99 | False     | TOOLS    |
+        | Gizmo     | Electronic thingy | 29.99 | True      | GADGETS  |
+
+Scenario: Read a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "Hat"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Id" field
+    And I press the "Clear" button
+    And I paste the "Id" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    And I should see "Hat" in the "Name" field
+    And I should see "A red fedora" in the "Description" field
+    And I should see "True" in the "Available" dropdown
+    And I should see "CLOTHS" in the "Category" dropdown
+    And I should see "59.95" in the "Price" field
+
+Scenario: Update a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "Socks"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Id" field
+    And I press the "Clear" button
+    And I paste the "Id" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    When I set the "Description" to "Warm wool socks"
+    And I set the "Price" to "14.99"
+    And I press the "Update" button
+    Then I should see the message "Success"
+    And I should see "Socks" in the "Name" field
+    And I should see "Warm wool socks" in the "Description" field
+    And I should see "14.99" in the "Price" field
+
+Scenario: Delete a Product
+    When I visit the "Home Page"
+    And I set the "Name" to "Gizmo"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    When I copy the "Id" field
+    And I press the "Clear" button
+    And I paste the "Id" field
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    When I press the "Delete" button
+    Then I should see the message "Product Deleted" in 5 seconds
+    When I paste the "Id" field
+    And I press the "Retrieve" button
+    Then I should see the message "Not Found"
+
+Scenario: List all Products
+    When I visit the "Home Page"
+    And I press the "Search" button without entering criteria
+    Then I should see the message "Success"
+    And I should see "4" products in the results
+
+Scenario: Search for Products by Category
+    When I visit the "Home Page"
+    And I set the "Category" to "CLOTHS"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "2" products in the results
+    And I should see "Hat" in the results
+    And I should see "Socks" in the results
+
+Scenario: Search for Products by Availability
+    When I visit the "Home Page"
+    And I set the "Available" to "True"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "3" products in the results
+    And I should see "Hat" in the results
+    And I should see "Socks" in the results
+    And I should see "Gizmo" in the results
+
+Scenario: Search for Products by Name
+    When I visit the "Home Page"
+    And I set the "Name" to "Wid"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see "1" product in the results
+    And I should see "Widget" in the results
